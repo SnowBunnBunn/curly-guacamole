@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>3D Card</title>
-    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+    <title>Visionneuse de Carte</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <style>
         html, body {
             margin: 0;
@@ -17,6 +17,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            font-family: sans-serif;
         }
 
         .card-container {
@@ -49,25 +50,6 @@
             transform: rotateY(180deg);
         }
 
-        #flipButton {
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            padding: 10px 16px;
-            background: #ffffff10;
-            border: 1px solid #ffffff30;
-            border-radius: 8px;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-            z-index: 10;
-        }
-
-            #flipButton:hover {
-                background: #ffffff20;
-            }
-
         #backButton {
             position: absolute;
             top: 20px;
@@ -87,11 +69,37 @@
                 background: #ffffff20;
             }
 
+        #variantButtons {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+            z-index: 10;
+        }
+
+            #variantButtons button {
+                padding: 6px 10px;
+                font-size: 13px;
+                border-radius: 6px;
+                background: #ffffff10;
+                border: 1px solid #ffffff30;
+                color: white;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+
+                #variantButtons button.active {
+                    background: #ffffff30;
+                }
     </style>
 </head>
 <body>
-    <a href="index.html" id="backButton">← Back</a>
-    <button id="flipButton">Rotate</button>
+
+    <a href="index.html" id="backButton">← Retour</a>
 
     <div class="card-container" id="container">
         <div class="card" id="card">
@@ -100,30 +108,114 @@
         </div>
     </div>
 
+    <div id="variantButtons"></div>
+
     <script>
         const container = document.getElementById("container");
         const card = document.getElementById("card");
-        const flipButton = document.getElementById("flipButton");
         const frontFace = document.getElementById("cardFront");
+        const variantButtonsContainer = document.getElementById("variantButtons");
 
-
-        const params = new URLSearchParams(window.location.search);
-        const frontImage = params.get("front") || "card1.png";
-        frontFace.style.backgroundImage = `url('Pic/Front/${frontImage}')`;
-
-        let isDragging = false;
-        let lastX = 0;
-        let lastY = 0;
+        let baseName = "";
+        let currentIndex = null;
+        let variantCount = 0;
         let rotateX = 0;
         let rotateY = 0;
         let scale = 1;
-        let isFlipped = false;
 
-        flipButton.addEventListener("click", () => {
-            isFlipped = !isFlipped;
-            const flipY = isFlipped ? 180 : 0;
-            card.style.transform = `scale(${scale}) rotateX(${rotateX}deg) rotateY(${rotateY + flipY}deg)`;
-        });
+        function updateTransform() {
+            card.style.transform = `scale(${scale}) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        }
+
+        function updateCardImage() {
+            const filename = currentIndex !== null
+                ? `${baseName}_${currentIndex}.png`
+                : `${baseName}.png`;
+
+            frontFace.style.backgroundImage = `url('Pic/Front/${filename}')`;
+            updateTransform();
+        }
+
+        function generateVariantButtons() {
+            variantButtonsContainer.innerHTML = '';
+
+            for (let i = 1; i <= variantCount; i++) {
+                const btn = document.createElement("button");
+                btn.textContent = `Carte ${i}`;
+                if (i === currentIndex) btn.classList.add("active");
+                btn.onclick = () => {
+                    currentIndex = i;
+                    updateCardImage();
+                    const all = variantButtonsContainer.querySelectorAll("button");
+                    all.forEach((b, idx) => {
+                        b.classList.toggle("active", idx === i - 1);
+                    });
+                };
+                variantButtonsContainer.appendChild(btn);
+            }
+        }
+
+        function initializeViewer() {
+            const params = new URLSearchParams(window.location.search);
+            const frontImage = params.get("front") || "card.png";
+
+            const variantMatch = frontImage.match(/^(.+?)_(\d+)\.png$/);
+            if (variantMatch) {
+                baseName = variantMatch[1];
+                currentIndex = parseInt(variantMatch[2], 10);
+
+                // Compte les variantes
+                let i = 1;
+                function checkNext() {
+                    const testImg = new Image();
+                    testImg.src = `Pic/Front/${baseName}_${i}.png`;
+                    testImg.onload = () => {
+                        i++;
+                        checkNext();
+                    };
+                    testImg.onerror = () => {
+                        variantCount = i - 1;
+                        updateCardImage();
+                        generateVariantButtons();
+                    };
+                }
+                checkNext();
+            } else {
+                baseName = frontImage.replace(/\.png$/i, '');
+
+                // Test s’il y a au moins 1 variante
+                const testImg = new Image();
+                testImg.src = `Pic/Front/${baseName}_1.png`;
+                testImg.onload = () => {
+                    // Compte les variantes
+                    let i = 1;
+                    function checkNext() {
+                        const img = new Image();
+                        img.src = `Pic/Front/${baseName}_${i}.png`;
+                        img.onload = () => {
+                            i++;
+                            checkNext();
+                        };
+                        img.onerror = () => {
+                            variantCount = i - 1;
+                            currentIndex = 1;
+                            updateCardImage();
+                            generateVariantButtons();
+                        };
+                    }
+                    checkNext();
+                };
+                testImg.onerror = () => {
+                    currentIndex = null;
+                    updateCardImage();
+                };
+            }
+        }
+
+        // Rotation souris
+        let isDragging = false;
+        let lastX = 0;
+        let lastY = 0;
 
         container.addEventListener("mousedown", (e) => {
             isDragging = true;
@@ -132,7 +224,6 @@
         });
 
         window.addEventListener("mouseup", () => isDragging = false);
-
         window.addEventListener("mousemove", (e) => {
             if (!isDragging) return;
             const dx = e.clientX - lastX;
@@ -144,6 +235,7 @@
             updateTransform();
         });
 
+        // Zoom souris
         container.addEventListener("wheel", (e) => {
             e.preventDefault();
             scale += e.deltaY * -0.001;
@@ -151,6 +243,7 @@
             updateTransform();
         });
 
+        // Tactile
         let lastTouchX = 0;
         let lastTouchY = 0;
         let lastDistance = null;
@@ -197,11 +290,13 @@
             return Math.sqrt(dx * dx + dy * dy);
         }
 
-        function updateTransform() {
-            const flipY = isFlipped ? 180 : 0;
-            card.style.transform = `scale(${scale}) rotateX(${rotateX}deg) rotateY(${rotateY + flipY}deg)`;
-        }
+        // Lancement
+        initializeViewer();
     </script>
+
+
+
+
 
 </body>
 </html>
