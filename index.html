@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Carte 3D Libre</title>
+    <title>3D Card</title>
     <style>
         body {
             margin: 0;
@@ -20,6 +20,7 @@
             height: 450px;
             perspective: 1000px;
             cursor: grab;
+            transform-origin: center;
         }
 
         .card {
@@ -60,36 +61,50 @@
     </div>
 
     <script>
-  const card = document.getElementById("card");
-  let isDragging = false;
-  let lastX = 0;
-  let lastY = 0;
-  let rotateX = 0;
-  let rotateY = 0;
+        const container = document.getElementById("container");
+        const card = document.getElementById("card");
 
-  document.getElementById("container").addEventListener("mousedown", (e) => {
-    isDragging = true;
-    lastX = e.clientX;
-    lastY = e.clientY;
-  });
+        let isDragging = false;
+        let lastX = 0;
+        let lastY = 0;
+        let rotateX = 0;
+        let rotateY = 0;
+        let scale = 1;
 
-  window.addEventListener("mouseup", () => {
-    isDragging = false;
-  });
+        container.addEventListener("mousedown", (e) => {
+            isDragging = true;
+            lastX = e.clientX;
+            lastY = e.clientY;
+        });
 
-  window.addEventListener("mousemove", (e) => {
-    if (!isDragging) return;
+        window.addEventListener("mouseup", () => {
+            isDragging = false;
+        });
 
-    const deltaX = e.clientX - lastX;
-    const deltaY = e.clientY - lastY;
-    lastX = e.clientX;
-    lastY = e.clientY;
+        window.addEventListener("mousemove", (e) => {
+            if (!isDragging) return;
 
-    rotateY += deltaX * 0.5;
-    rotateX -= deltaY * 0.5;
+            const deltaX = e.clientX - lastX;
+            const deltaY = e.clientY - lastY;
+            lastX = e.clientX;
+            lastY = e.clientY;
 
-    card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-  });
+            rotateY += deltaX * 0.5;
+            rotateX -= deltaY * 0.5;
+
+            updateTransform();
+        });
+
+        container.addEventListener("wheel", (e) => {
+            e.preventDefault();
+            scale += e.deltaY * -0.001;
+            scale = Math.min(Math.max(scale, 0.5), 2);
+            updateTransform();
+        });
+
+        function updateTransform() {
+            card.style.transform = `scale(${scale}) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        }
     </script>
 
 </body>
