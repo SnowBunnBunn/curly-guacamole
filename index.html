@@ -1,92 +1,213 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <title>Choose a card</title>
     <style>
         body {
-            margin: 0;
-            padding: 0;
             background-color: #121212;
             color: white;
             font-family: sans-serif;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            padding: 20px;
         }
 
         h1 {
-            margin: 30px 0 10px;
-            font-size: 24px;
-        }
-
-        .grid-wrapper {
-            flex: 1;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 0 20px;
-            box-sizing: border-box;
-        }
-
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-            gap: 12px;
-            max-width: 800px;
-            width: 100%;
-            justify-items: center;
-        }
-
-        .card-button {
-            background-color: #2a2a2a;
-            border: 1px solid #444;
-            border-radius: 6px;
-            padding: 8px;
-            color: white;
-            font-size: 13px;
-            cursor: pointer;
-            transition: background 0.2s;
-            width: 100%;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             text-align: center;
+            margin-bottom: 20px;
         }
 
-            .card-button:hover {
-                background-color: #3c3c3c;
+        #controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+            #controls button {
+                margin: 0 10px;
+                padding: 8px 14px;
+                border: none;
+                border-radius: 6px;
+                background-color: #333;
+                color: white;
+                cursor: pointer;
+                font-size: 14px;
             }
+
+                #controls button:hover {
+                    background-color: #555;
+                }
+
+        #searchInput {
+            display: block;
+            margin: 0 auto 30px auto;
+            padding: 10px;
+            width: 80%;
+            max-width: 400px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background: #1e1e1e;
+            color: white;
+        }
+
+        .category {
+            margin-bottom: 20px;
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            border-bottom: 1px solid #444;
+            padding: 8px 0;
+            font-size: 20px;
+        }
+
+            .category-header span.toggle {
+                font-size: 18px;
+                margin-left: 10px;
+                color: #aaa;
+            }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+            padding-left: 10px;
+        }
+
+            .button-group button {
+                background-color: #222;
+                color: white;
+                border: 1px solid #555;
+                padding: 10px 16px;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+
+                .button-group button:hover {
+                    background-color: #444;
+                }
+
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
 
-    <h1>Choose the card</h1>
+    <h1>Choose a character</h1>
 
-    <div class="grid-wrapper">
-        <div class="grid-container" id="grid">
-        </div>
+    <div id="controls">
+        <button id="expandAll">🔼 Tout déplier</button>
+        <button id="collapseAll">🔽 Tout replier</button>
     </div>
 
+    <input type="text" id="searchInput" placeholder="Search a character...">
+    <div id="cardList"></div>
+
     <script>
-        const cardList = [
-            "Dva", "Ganyu", "Yoruichi", "Rikku", "Rei", "Kiseki", "Cynthia", "Sekhmet_of_Death",
-            "Coco", "Weiss", "Ram", "Purah", "Elbe", "2B", "Calliope"
-        ];
+        const cardData = {
+            "Genshin Impact": ["Ganyu", "Yelan"],
+            "Overwatch": ["Dva"],
+            "Pokemon": ["Cynthia"],
+            "Hololive": ["Calliope", "Coco"],
+            "Autres": [
+                "Ram", "Yoruichi", "Rikku", "Rei", "Kiseki",
+                "Sekhmet_of_Death", "Weiss", "Purah", "Elbe", "2B"
+            ]
+        };
 
-        const grid = document.getElementById("grid");
+        const cardList = document.getElementById("cardList");
+        const searchInput = document.getElementById("searchInput");
+        const expandAllBtn = document.getElementById("expandAll");
+        const collapseAllBtn = document.getElementById("collapseAll");
 
-        cardList.forEach((filename) => {
-            const btn = document.createElement("button");
-            btn.className = "card-button";
-            btn.textContent = filename.replace(/_/g, ' ');
-            btn.onclick = () => {
-                window.location.href = `viewer.html?front=${encodeURIComponent(filename)}.png`;
-            };
-            grid.appendChild(btn);
+        const categoryElements = [];
+
+        for (const category in cardData) {
+            const section = document.createElement("div");
+            section.classList.add("category");
+
+            const header = document.createElement("div");
+            header.classList.add("category-header");
+
+            const title = document.createElement("span");
+            title.textContent = category;
+
+            const toggle = document.createElement("span");
+            toggle.classList.add("toggle");
+            toggle.textContent = "➖";
+
+            header.appendChild(title);
+            header.appendChild(toggle);
+            section.appendChild(header);
+
+            const group = document.createElement("div");
+            group.classList.add("button-group"); // ouvert par défaut
+
+            const buttons = [];
+
+            cardData[category].forEach((cardName) => {
+                const btn = document.createElement("button");
+                btn.textContent = cardName.replace(/_/g, " ");
+                btn.dataset.name = cardName.toLowerCase();
+                btn.onclick = () => {
+                    window.location.href = `viewer.html?front=${encodeURIComponent(cardName)}.png`;
+                };
+                group.appendChild(btn);
+                buttons.push(btn);
+            });
+
+            section.appendChild(group);
+            cardList.appendChild(section);
+
+            header.addEventListener("click", () => {
+                const isHidden = group.classList.toggle("hidden");
+                toggle.textContent = isHidden ? "➕" : "➖";
+            });
+
+            categoryElements.push({ section, group, buttons, toggle });
+        }
+
+        searchInput.addEventListener("input", () => {
+            const search = searchInput.value.trim().toLowerCase();
+
+            categoryElements.forEach(({ section, group, buttons, toggle }) => {
+                let foundInCategory = false;
+
+                buttons.forEach(btn => {
+                    const match = btn.dataset.name.includes(search);
+                    btn.style.display = match ? "inline-block" : "none";
+                    if (match) foundInCategory = true;
+                });
+
+                if (foundInCategory) {
+                    section.style.display = "";
+                    group.classList.remove("hidden");
+                    toggle.textContent = "➖";
+                } else {
+                    section.style.display = "none";
+                }
+            });
+        });
+
+        // Déplier tout
+        expandAllBtn.addEventListener("click", () => {
+            categoryElements.forEach(({ group, toggle }) => {
+                group.classList.remove("hidden");
+                toggle.textContent = "➖";
+            });
+        });
+
+        // Replier tout
+        collapseAllBtn.addEventListener("click", () => {
+            categoryElements.forEach(({ group, toggle }) => {
+                group.classList.add("hidden");
+                toggle.textContent = "➕";
+            });
         });
     </script>
 
