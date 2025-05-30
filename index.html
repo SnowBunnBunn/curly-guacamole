@@ -14,8 +14,48 @@
 
         h1 {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
+
+        #filterToggle {
+            display: block;
+            margin: 0 auto 10px auto;
+            padding: 8px 14px;
+            background-color: #333;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            width: fit-content;
+        }
+
+        #filterModal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #1e1e1e;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 8px;
+            padding: 20px;
+            z-index: 1000;
+        }
+
+            #filterModal label {
+                display: block;
+                margin: 10px 0;
+            }
+
+            #filterModal button {
+                margin-top: 15px;
+                padding: 6px 12px;
+                background-color: #333;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+            }
 
         #controls {
             text-align: center;
@@ -64,11 +104,22 @@
             font-size: 20px;
         }
 
-            .category-header span.toggle {
-                font-size: 18px;
-                margin-left: 10px;
-                color: #aaa;
+            .category-header span.title-text {
+                display: flex;
+                align-items: center;
             }
+
+        .card-count {
+            margin-left: 10px;
+            color: #888;
+            font-size: 16px;
+        }
+
+        .category-header span.toggle {
+            font-size: 18px;
+            margin-left: 10px;
+            color: #aaa;
+        }
 
         .button-group {
             display: flex;
@@ -95,11 +146,33 @@
         .hidden {
             display: none;
         }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            border-top: 1px solid #333;
+            color: #aaa;
+        }
+
+            footer a {
+                color: #aaa;
+                text-decoration: none;
+                margin: 0 10px;
+            }
     </style>
 </head>
 <body>
 
     <h1>Choose a character</h1>
+
+    <div id="filterToggle">🎯 Filters</div>
+    <div id="filterModal">
+        <label><input type="checkbox" class="typeCheckbox" value="game" checked> Video Game</label>
+        <label><input type="checkbox" class="typeCheckbox" value="anime" checked> Anime</label>
+        <label><input type="checkbox" class="typeCheckbox" value="vtuber" checked> Vtuber</label>
+        <button id="applyFilters">Apply</button>
+    </div>
 
     <div id="controls">
         <button id="expandAll">🔼 Unfold all</button>
@@ -109,148 +182,164 @@
     <input type="text" id="searchInput" placeholder="Search a character or serie/game...">
     <div id="cardList"></div>
 
+    <footer>
+        <p>
+            <a href="index.html">🏠 Index</a> |
+            <a href="contact.html">📬 Contact me</a> |
+            <a href="https://twitter.com/SnowBunnBunn" target="_blank">🐦 Twitter</a>
+        </p>
+    </footer>
+
     <script>
         const cardData = {
-            "Genshin Impact": ["Ganyu", "Yelan", "Eula"],
-            "Overwatch": ["Dva", "Mercy", "Kiriko"],
-            "League of Legends": ["Jinx", "Miss_Fortune"],
-            "Pokemon": ["Cynthia", "Hex_Maniac"],
-            "Hololive": ["Calliope", "Coco", "Okayu", "Mio"],
-            "Love Live!": ["Maki", "Setsuna"],
-            "High School DxD": ["Rossweiss", "Akeno"],
-            "Naruto": ["Tsunade", "Kushina", "Naruko", "Hinata"],
-            "Fate": ["Nero", "Scathach"],
-            "Final Fantasy": ["Rikku", "Aerith", "Tifa"],
-            "Last Origin": ["Sekhmet_of_Death", "Cerestia_of_Life", "Miho", "Fenrir"],
-            "Azur Lane": ["Elbe"],
-            "Umamusume": ["Kiseki"],
-            "Other": [
-                "Ram", "Yoruichi","Rei",
-                "Weiss", "Purah", "2B", "Mitsuri"
-            ]
+            "Genshin Impact": { type: "game", cards: ["Ganyu", "Yelan", "Eula"] },
+            "Overwatch": { type: "game", cards: ["Dva", "Mercy", "Kiriko"] },
+            "League of Legends": { type: "game", cards: ["Jinx", "Miss_Fortune"] },
+            "Pokemon": { type: "game", cards: ["Cynthia", "Hex_Maniac"] },
+            "Hololive": { type: "vtuber", cards: ["Calliope", "Coco", "Okayu", "Mio"] },
+            "Love Live!": { type: "anime", cards: ["Maki", "Setsuna"] },
+            "High School DxD": { type: "anime", cards: ["Rossweiss", "Akeno"] },
+            "Naruto": { type: "anime", cards: ["Tsunade", "Kushina", "Naruko", "Hinata"] },
+            "Fate": { type: "game", cards: ["Nero", "Scathach"] },
+            "Final Fantasy": { type: "game", cards: ["Rikku", "Aerith", "Tifa"] },
+            "Last Origin": { type: "game", cards: ["Sekhmet_of_Death", "Cerestia_of_Life", "Miho", "Fenrir"] },
+            "Azur Lane": { type: "game", cards: ["Elbe"] },
+            "Umamusume": { type: "game", cards: ["Kiseki"] },
+            "Other": { type: "other", cards: ["Ram", "Yoruichi", "Rei", "Weiss", "Purah", "2B", "Mitsuri"] }
         };
 
-        const cardList = document.getElementById("cardList");
         const searchInput = document.getElementById("searchInput");
+        const cardList = document.getElementById("cardList");
+        const filterToggle = document.getElementById("filterToggle");
+        const filterModal = document.getElementById("filterModal");
+        const applyFiltersBtn = document.getElementById("applyFilters");
+
         const expandAllBtn = document.getElementById("expandAll");
         const collapseAllBtn = document.getElementById("collapseAll");
 
-        const categoryElements = [];
+        let activeTypes = ["game", "anime", "vtuber"];
 
         function normalize(str) {
-            return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+            return str.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
         }
 
-        for (const category in cardData) {
-            const section = document.createElement("div");
-            section.classList.add("category");
+        function renderCategories() {
+            cardList.innerHTML = "";
+            for (const category in cardData) {
+                const { type, cards } = cardData[category];
+                if (!activeTypes.includes(type) && category !== "Other") continue;
 
-            const header = document.createElement("div");
-            header.classList.add("category-header");
+                const section = document.createElement("div");
+                section.className = "category";
 
-            const title = document.createElement("span");
-            const titleText = document.createTextNode(`${category}`);
-            const count = document.createElement("span");
-            count.classList.add("card-count");
-            count.style.marginLeft = "10px";
-            count.style.color = "#888";
+                const header = document.createElement("div");
+                header.className = "category-header";
 
-            title.appendChild(titleText);
-            title.appendChild(count);
+                const titleWrapper = document.createElement("span");
+                titleWrapper.className = "title-text";
+                titleWrapper.textContent = category;
 
-            const toggle = document.createElement("span");
-            toggle.classList.add("toggle");
-            toggle.textContent = "➕";
+                const count = document.createElement("span");
+                count.className = "card-count";
+                count.textContent = `(${cards.length})`;
 
-            header.appendChild(title);
-            header.appendChild(toggle);
-            section.appendChild(header);
+                const toggle = document.createElement("span");
+                toggle.className = "toggle";
+                toggle.textContent = "➕";
 
-            const group = document.createElement("div");
-            group.classList.add("button-group", "hidden");
+                const titleContainer = document.createElement("span");
+                titleContainer.style.display = "flex";
+                titleContainer.style.alignItems = "center";
+                titleContainer.appendChild(titleWrapper);
+                titleContainer.appendChild(count);
+                header.appendChild(titleContainer);
+                header.appendChild(toggle);
+                section.appendChild(header);
 
-            const buttons = [];
+                const group = document.createElement("div");
+                group.className = "button-group hidden";
 
-            cardData[category].forEach((cardName) => {
-                const btn = document.createElement("button");
-                btn.textContent = cardName.replace(/_/g, " ");
-                btn.dataset.name = cardName.toLowerCase();
-                btn.onclick = () => {
-                    window.location.href = `viewer.html?front=${encodeURIComponent(cardName)}.png`;
-                };
-                group.appendChild(btn);
-                buttons.push(btn);
-            });
+                cards.forEach(card => {
+                    const btn = document.createElement("button");
+                    btn.textContent = card.replace(/_/g, " ");
+                    btn.dataset.name = card.toLowerCase();
+                    btn.onclick = () => {
+                        localStorage.setItem("cardSearch", searchInput.value);
+                        localStorage.setItem("cardTypes", JSON.stringify(activeTypes));
+                        window.location.href = `viewer.html?front=${encodeURIComponent(card)}.png`;
+                    };
+                    group.appendChild(btn);
+                });
 
-            count.textContent = `(${buttons.length})`;
+                header.addEventListener("click", () => {
+                    group.classList.toggle("hidden");
+                    toggle.textContent = group.classList.contains("hidden") ? "➕" : "➖";
+                });
 
-            section.appendChild(group);
-            cardList.appendChild(section);
-
-            header.addEventListener("click", () => {
-                const isHidden = group.classList.toggle("hidden");
-                toggle.textContent = isHidden ? "➕" : "➖";
-            });
-
-            categoryElements.push({ section, group, buttons, toggle, count, titleText, category });
+                section.appendChild(group);
+                cardList.appendChild(section);
+            }
         }
 
         searchInput.addEventListener("input", () => {
             const search = normalize(searchInput.value.trim());
-
-            categoryElements.forEach(({ section, group, buttons, toggle, count, titleText, category }) => {
-                const categoryName = normalize(category);
-                let foundInCategory = false;
-                let visibleCount = 0;
-
-                const fullMatch = categoryName.includes(search);
+            document.querySelectorAll(".category").forEach(section => {
+                const titleText = section.querySelector(".title-text").textContent.trim();
+                const buttons = section.querySelectorAll(".button-group button");
+                let visible = 0;
 
                 buttons.forEach(btn => {
-                    const nameMatch = normalize(btn.dataset.name).includes(search);
-                    const show = fullMatch || nameMatch;
-                    btn.style.display = show ? "inline-block" : "none";
-                    if (show) {
-                        foundInCategory = true;
-                        visibleCount++;
-                    }
+                    const match = normalize(btn.dataset.name).includes(search);
+                    btn.style.display = match ? "inline-block" : "none";
+                    if (match) visible++;
                 });
 
-                count.textContent = `(${visibleCount})`;
+                const count = section.querySelector(".card-count");
+                count.textContent = `(${visible})`;
 
-                if (foundInCategory) {
+                if (visible > 0 || (titleText === "Other" && search === "")) {
                     section.style.display = "";
-                    group.classList.remove("hidden");
-                    toggle.textContent = "➖";
                 } else {
                     section.style.display = "none";
                 }
             });
         });
 
-        expandAllBtn.addEventListener("click", () => {
-            categoryElements.forEach(({ group, toggle }) => {
-                group.classList.remove("hidden");
-                toggle.textContent = "➖";
+        filterToggle.addEventListener("click", () => {
+            // Sync checkboxes with current filter state
+            document.querySelectorAll(".typeCheckbox").forEach(cb => {
+                cb.checked = activeTypes.includes(cb.value);
             });
+            filterModal.style.display = "block";
+        });
+
+        applyFiltersBtn.addEventListener("click", () => {
+            activeTypes = Array.from(document.querySelectorAll(".typeCheckbox:checked")).map(c => c.value);
+            localStorage.setItem("cardTypes", JSON.stringify(activeTypes));
+            filterModal.style.display = "none";
+            renderCategories();
+            searchInput.dispatchEvent(new Event("input"));
+        });
+
+        expandAllBtn.addEventListener("click", () => {
+            document.querySelectorAll(".button-group").forEach(g => g.classList.remove("hidden"));
+            document.querySelectorAll(".toggle").forEach(t => t.textContent = "➖");
         });
 
         collapseAllBtn.addEventListener("click", () => {
-            categoryElements.forEach(({ group, toggle }) => {
-                group.classList.add("hidden");
-                toggle.textContent = "➕";
-            });
+            document.querySelectorAll(".button-group").forEach(g => g.classList.add("hidden"));
+            document.querySelectorAll(".toggle").forEach(t => t.textContent = "➕");
+        });
+
+        window.addEventListener("DOMContentLoaded", () => {
+            const savedSearch = localStorage.getItem("cardSearch");
+            const savedTypes = localStorage.getItem("cardTypes");
+            if (savedSearch) searchInput.value = savedSearch;
+            if (savedTypes) activeTypes = JSON.parse(savedTypes);
+            renderCategories();
+            searchInput.dispatchEvent(new Event("input"));
         });
     </script>
-
-    <footer style="text-align:center; margin-top: 40px; padding: 20px; border-top: 1px solid #333; color: #aaa;">
-        <p>
-            <a href="index.html" style="color:#aaa; text-decoration:none; margin-right: 15px;">🏠 Index</a>
-            |
-            <a href="contact.html" style="color:#aaa; text-decoration:none; margin-left: 15px;">📬 Contact me</a>
-            |
-            <a href="https://twitter.com/SnowBunnBunn" target="_blank" style="color:#aaa; text-decoration:none; margin-left: 15px;">🐦 Twitter</a>
-        </p>
-    </footer>
 
 </body>
 </html>
