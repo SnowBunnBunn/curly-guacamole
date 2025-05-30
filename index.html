@@ -105,7 +105,7 @@
         <button id="collapseAll">🔽 Fold all</button>
     </div>
 
-    <input type="text" id="searchInput" placeholder="Search a character...">
+    <input type="text" id="searchInput" placeholder="Search a character or serie/game...">
     <div id="cardList"></div>
 
     <script>
@@ -113,7 +113,7 @@
             "Genshin Impact": ["Ganyu", "Yelan"],
             "Overwatch": ["Dva"],
             "Pokemon": ["Cynthia","Hex_Maniac"],
-            "Hololive": ["Calliope", "Coco", "Okayu"],
+            "Hololive": ["Calliope", "Coco", "Okayu","Mio"],
             "Love Live!": ["Maki"],
             "High School DxD": ["Rossweiss","Akeno"],
             "Other": [
@@ -174,16 +174,24 @@
             categoryElements.push({ section, group, buttons, toggle });
         }
 
+        function normalize(str) {
+            return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        }
+
         searchInput.addEventListener("input", () => {
-            const search = searchInput.value.trim().toLowerCase();
+            const search = normalize(searchInput.value.trim());
 
             categoryElements.forEach(({ section, group, buttons, toggle }) => {
+                const categoryName = normalize(section.querySelector(".category-header span").textContent);
                 let foundInCategory = false;
 
+                const fullMatch = categoryName.includes(search);
+
                 buttons.forEach(btn => {
-                    const match = btn.dataset.name.includes(search);
-                    btn.style.display = match ? "inline-block" : "none";
-                    if (match) foundInCategory = true;
+                    const nameMatch = normalize(btn.dataset.name).includes(search);
+                    const show = fullMatch || nameMatch;
+                    btn.style.display = show ? "inline-block" : "none";
+                    if (show) foundInCategory = true;
                 });
 
                 if (foundInCategory) {
