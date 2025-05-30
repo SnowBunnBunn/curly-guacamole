@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Visionneuse de Carte</title>
+    <title>3D Card</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <style>
         html, body {
@@ -141,7 +141,7 @@
 
             for (let i = 1; i <= variantCount; i++) {
                 const btn = document.createElement("button");
-                btn.textContent = `Carte ${i}`;
+                btn.textContent = `Card ${i}`;
                 if (i === currentIndex) btn.classList.add("active");
                 btn.onclick = () => {
                     currentIndex = i;
