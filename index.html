@@ -113,16 +113,20 @@
         const cardData = {
             "Genshin Impact": ["Ganyu", "Yelan", "Eula"],
             "Overwatch": ["Dva"],
-            "League of Legends": ["Jinx","Miss_Fortune"],
+            "League of Legends": ["Jinx", "Miss_Fortune"],
             "Pokemon": ["Cynthia", "Hex_Maniac"],
             "Hololive": ["Calliope", "Coco", "Okayu", "Mio"],
-            "Love Live!": ["Maki","Setsuna"],
+            "Love Live!": ["Maki", "Setsuna"],
             "High School DxD": ["Rossweiss", "Akeno"],
-            "Naruto": ["Tsunade", "Kushina", "Naruko", "Hinata"], 
+            "Naruto": ["Tsunade", "Kushina", "Naruko", "Hinata"],
             "Fate": ["Nero", "Scathach"],
+            "Final Fantasy": ["Rikku"],
+            "Last Origin": ["Sekhmet_of_Death", "Cerestia_of_Life", "Miho"],
+            "Azur Lane": ["Elbe"],
+            "Umamusume": ["Kiseki"],
             "Other": [
-                "Ram", "Yoruichi", "Rikku", "Rei", "Kiseki",
-                "Sekhmet_of_Death", "Weiss", "Purah", "Elbe", "2B", "Mitsuri"
+                "Ram", "Yoruichi","Rei",
+                "Weiss", "Purah", "2B", "Mitsuri"
             ]
         };
 
@@ -133,6 +137,10 @@
 
         const categoryElements = [];
 
+        function normalize(str) {
+            return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        }
+
         for (const category in cardData) {
             const section = document.createElement("div");
             section.classList.add("category");
@@ -141,7 +149,14 @@
             header.classList.add("category-header");
 
             const title = document.createElement("span");
-            title.textContent = category;
+            const titleText = document.createTextNode(`${category}`);
+            const count = document.createElement("span");
+            count.classList.add("card-count");
+            count.style.marginLeft = "10px";
+            count.style.color = "#888";
+
+            title.appendChild(titleText);
+            title.appendChild(count);
 
             const toggle = document.createElement("span");
             toggle.classList.add("toggle");
@@ -167,6 +182,8 @@
                 buttons.push(btn);
             });
 
+            count.textContent = `(${buttons.length})`;
+
             section.appendChild(group);
             cardList.appendChild(section);
 
@@ -175,19 +192,16 @@
                 toggle.textContent = isHidden ? "➕" : "➖";
             });
 
-            categoryElements.push({ section, group, buttons, toggle });
-        }
-
-        function normalize(str) {
-            return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+            categoryElements.push({ section, group, buttons, toggle, count, titleText, category });
         }
 
         searchInput.addEventListener("input", () => {
             const search = normalize(searchInput.value.trim());
 
-            categoryElements.forEach(({ section, group, buttons, toggle }) => {
-                const categoryName = normalize(section.querySelector(".category-header span").textContent);
+            categoryElements.forEach(({ section, group, buttons, toggle, count, titleText, category }) => {
+                const categoryName = normalize(category);
                 let foundInCategory = false;
+                let visibleCount = 0;
 
                 const fullMatch = categoryName.includes(search);
 
@@ -195,8 +209,13 @@
                     const nameMatch = normalize(btn.dataset.name).includes(search);
                     const show = fullMatch || nameMatch;
                     btn.style.display = show ? "inline-block" : "none";
-                    if (show) foundInCategory = true;
+                    if (show) {
+                        foundInCategory = true;
+                        visibleCount++;
+                    }
                 });
+
+                count.textContent = `(${visibleCount})`;
 
                 if (foundInCategory) {
                     section.style.display = "";
