@@ -1,5 +1,5 @@
 
-# Interactive 3D Anime Card Viewer
+# Interactive 3D Card Viewer
 
 This project allows you to view and interact with 3D anime character cards directly in the browser. You can rotate, zoom, and filter cards based on various categories.
 
