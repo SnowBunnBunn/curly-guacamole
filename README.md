@@ -1,29 +1,39 @@
-# Card Collection Viewer - Contribution Guide
 
-This project lets you browse character cards categorized by series, with filtering by type (Video Game, Anime, Vtuber), and includes a 3D viewer for each card.
+# Interactive 3D Anime Card Viewer
 
-## 🧩 How to Add a New Character
+This project allows you to view and interact with 3D anime character cards directly in the browser. You can rotate, zoom, and filter cards based on various categories.
 
-If you'd like to contribute new characters to the project, follow these steps:
+## 🖼️ Images and Editing
 
-### 🔧 Files to Modify
+All images are designed in **GIMP** using the `.xcf` file format.  
+To add or modify a character card, open the file:
 
-- **Image Editing**: Use the GIMP file `card_template.xcf` to create the front image of the card.
-- **Add Character**: Insert your new character into the proper category inside the `index.html` script, specifically within the `cardData` object.
-- If the character has multiple card versions (e.g. "Ganyu_1.png", "Ganyu_2.png"), ensure they follow the naming convention so the navigation in the viewer works.
+```
+assets/card-template.xcf
+```
 
-### 🔀 Branch Workflow
+You can use this template to place your character art, and export to `.png`.
 
-- **Do not fork** the repository unless you are contributing from outside the project.
-- Instead, **create a new branch** from `main`.
-  ```bash
-  git checkout -b add-new-character
-  ```
-- After making changes, push your branch:
-  ```bash
-  git push origin add-new-character
-  ```
-- Then, **open a Pull Request** to propose your modifications.
+## ➕ Adding a New Character (for beginners)
+
+If you've **never used Git** before, don't worry! Follow these simple steps:
+
+1. Go to the GitHub page of the project.
+2. Click on **"Fork"** (top right) to make your own copy of the project.
+3. In your fork, click on **"Add file" → "Upload files"** and upload your new card image(s) in Pic/Front/.
+4. Edit the `index.html` file to add your new character manually.
+5. When you're done, click **"Pull Request"** and submit your changes to the original project.
+
+> ❗ You cannot create branches directly on this repository — use a **fork** instead.
+
+## 🎴 Variants
+
+If you want to submit **alternate versions** of a character card (e.g. outfit changes, special events), name your files like this:
+- `Ganyu_1.png`
+- `Ganyu_2.png`
+- `Ganyu_3.png`
+
+Each numbered version is considered a variant of the same character and should be referenced as separate entries in `index.html`.
 
 ### 📝 Example
 
@@ -34,28 +44,6 @@ To add a new character like "Hinagiku" from a video game:
 
 ---
 
-## ❓ New to Git?
-Here’s a basic workflow to contribute:
-```bash
-# Clone the project
-git clone https://github.com/your-username/project-name.git
-cd project-name
-
-# Create a branch for your work
-git checkout -b add-my-character
-
-# Make your changes (edit index.html, add image files, etc.)
-
-# Stage and commit
-git add .
-git commit -m "Added new character: Hinagiku"
-
-# Push your branch
-git push origin add-my-character
-```
-Then go to GitHub and open a Pull Request from your branch to `main`.
-
----
 
 ## 💬 Communication
 
