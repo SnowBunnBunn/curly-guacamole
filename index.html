@@ -194,7 +194,7 @@
 
     <script>
         const cardData = {
-            "Genshin Impact": { type: "game", cards: ["Ganyu", "Yelan", "Eula", "Rosaria", "Furina"] },
+            "Genshin Impact": { type: "game", cards: ["Ganyu", "Yelan", "Eula", "Rosaria", "Furina","Shinobu"] },
             "Zenless Zone Zero": { type: "game", cards: ["Miyabi", "Evelyn", "Caesar", "Jane"] },
             "Withering Waves": { type: "game", cards: ["Jinhsi", "Cantarella", "Phoebe", "Zani"] },
             "Overwatch": { type: "game", cards: ["Dva", "Mercy", "Kiriko"] },
@@ -202,7 +202,7 @@
             "Pokemon": { type: "game", cards: ["Cynthia", "Hex_Maniac"] },
             "Hololive": { type: "vtuber", cards: ["Calliope", "Coco", "Okayu", "Mio"] },
             "Indie Virutal Youtuber": { type: "vtuber", cards: ["Shylily", "Patra", "Melody", "Silvervale"] },
-            "Love Live!": { type: "anime", cards: ["Maki", "Setsuna"] },
+            "Love Live!": { type: "anime", cards: ["Maki", "Setsuna","Eli"] },
             "High School DxD": { type: "anime", cards: ["Rossweiss", "Akeno", "Rias"] },
             "Sword Art Online": {type :"anime", cards: ["Asuna","Sinon","Leafa"] },
             "Naruto": { type: "anime", cards: ["Tsunade", "Kushina", "Naruko", "Hinata"] },
@@ -215,8 +215,12 @@
             "Umamusume": { type: "game", cards: ["Kiseki"] },
             "DC": { type: "anime", cards: ["Zatanna", "Hawkgirl"] },
             "Marvel": { type: "anime", cards: ["Psylocke", "Rogue"] },
-            "Other": { type: "other", cards: ["Ram", "Rei", "Weiss", "Purah", "2B", "Mitsuri"] }
+            "Other": { type: "other", cards: ["Ram", "Rei", "Weiss", "Purah", "2B", "Mitsuri","Nakano_Miku"] }
         };
+
+        const latestCards = [
+            "Belfast", "Taihou", "Mash","Shinobu","Nakano_Miku","Eli"
+        ];
 
         const searchInput = document.getElementById("searchInput");
         const cardList = document.getElementById("cardList");
@@ -270,8 +274,9 @@
                 group.className = "button-group hidden";
 
                 cards.forEach(card => {
+                    const isNew = latestCards.includes(card);
                     const btn = document.createElement("button");
-                    btn.textContent = card.replace(/_/g, " ");
+                    btn.textContent = card.replace(/_/g, " ") + (isNew ? " 🆕" : "");
                     btn.dataset.name = card.toLowerCase();
                     btn.onclick = () => {
                         localStorage.setItem("cardSearch", searchInput.value);
