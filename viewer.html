@@ -47,7 +47,6 @@
         }
 
         .card-back {
-            background-image: url('Pic/Back/card-back.png');
             transform: rotateY(180deg);
         }
 
@@ -96,6 +95,7 @@
                 #variantButtons button.active {
                     background: #ffffff30;
                 }
+
         footer {
             text-align: center;
             margin-top: 40px;
@@ -118,7 +118,7 @@
     <div class="card-container" id="container">
         <div class="card" id="card">
             <div class="card-face card-front" id="cardFront"></div>
-            <div class="card-face card-back"></div>
+            <div class="card-face card-back" id="cardBack"></div>
         </div>
     </div>
 
@@ -128,7 +128,23 @@
         const container = document.getElementById("container");
         const card = document.getElementById("card");
         const frontFace = document.getElementById("cardFront");
+        const backFace = document.getElementById("cardBack");
         const variantButtonsContainer = document.getElementById("variantButtons");
+
+        const backGroups = {
+            "cosplay": ["Rias_2","Eula_2"],
+            "facial": ["Tsunade_2", "Cynthia_2"],
+            //"summer": ["Furina_2", "Eula_3"]
+        };
+
+        function getBackForCard(cardName) {
+            for (const [group, cards] of Object.entries(backGroups)) {
+                if (cards.includes(cardName)) {
+                    return `Pic/Back/back-${group}.png`;
+                }
+            }
+            return "Pic/Back/card-back.png";
+        }
 
         let baseName = "";
         let currentIndex = null;
@@ -147,6 +163,8 @@
                 : `${baseName}.png`;
 
             frontFace.style.backgroundImage = `url('Pic/Front/${filename}')`;
+            const backName = currentIndex !== null ? `${baseName}_${currentIndex}` : baseName;
+            backFace.style.backgroundImage = `url('${getBackForCard(backName)}')`;
             updateTransform();
         }
 
@@ -178,7 +196,6 @@
                 baseName = variantMatch[1];
                 currentIndex = parseInt(variantMatch[2], 10);
 
-                // Compte les variantes
                 let i = 1;
                 function checkNext() {
                     const testImg = new Image();
@@ -196,12 +213,9 @@
                 checkNext();
             } else {
                 baseName = frontImage.replace(/\.png$/i, '');
-
-                // Test s’il y a au moins 1 variante
                 const testImg = new Image();
                 testImg.src = `Pic/Front/${baseName}_1.png`;
                 testImg.onload = () => {
-                    // Compte les variantes
                     let i = 1;
                     function checkNext() {
                         const img = new Image();
@@ -226,7 +240,9 @@
             }
         }
 
-        // Rotation souris
+        initializeViewer();
+
+        // Mouse drag to rotate
         let isDragging = false;
         let lastX = 0;
         let lastY = 0;
@@ -249,7 +265,7 @@
             updateTransform();
         });
 
-        // Zoom souris
+        // Mouse wheel to zoom
         container.addEventListener("wheel", (e) => {
             e.preventDefault();
             scale += e.deltaY * -0.001;
@@ -257,7 +273,7 @@
             updateTransform();
         });
 
-        // Tactile
+        // Touch controls
         let lastTouchX = 0;
         let lastTouchY = 0;
         let lastDistance = null;
@@ -303,14 +319,7 @@
             const dy = touches[0].clientY - touches[1].clientY;
             return Math.sqrt(dx * dx + dy * dy);
         }
-
-        // Lancement
-        initializeViewer();
     </script>
-
-
-
-
 
 </body>
 </html>
