@@ -177,6 +177,7 @@
     <div id="controls">
         <button id="expandAll">🔼 Unfold all</button>
         <button id="collapseAll">🔽 Fold all</button>
+        <button id="randomCard">🎲 Random Card</button>
     </div>
 
     <input type="text" id="searchInput" placeholder="Search a character or serie/game...">
@@ -354,6 +355,21 @@
             renderCategories();
             searchInput.dispatchEvent(new Event("input"));
         });
+        document.getElementById("randomCard").addEventListener("click", () => {
+            // Inclure tous les boutons de cartes visibles (filtrés), même dans des catégories repliées
+            const allFilteredButtons = Array.from(document.querySelectorAll(".button-group button"))
+                .filter(btn => btn.style.display !== "none");
+
+            if (allFilteredButtons.length === 0) {
+                alert("No card available with current filters!");
+                return;
+            }
+
+            const randomBtn = allFilteredButtons[Math.floor(Math.random() * allFilteredButtons.length)];
+            randomBtn.click();
+        });
+
+
     </script>
 
 </body>
